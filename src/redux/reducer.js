@@ -1,8 +1,7 @@
-export const GET_REPOS = 'my-awesome-app/repos/LOAD';
-export const GET_REPOS_SUCCESS = 'my-awesome-app/repos/LOAD_SUCCESS';
-export const GET_REPOS_FAIL = 'my-awesome-app/repos/LOAD_FAIL';
+import state from './state'
+import {GET_REPOS, GET_REPOS_SUCCESS, GET_REPOS_FAIL} from "./consts";
 
-export default function reducer(state = {repos: []}, action) {
+export default function reducer(state = state, action) {
     switch (action.type) {
         case GET_REPOS:
             return {...state, loading: true};
@@ -17,15 +16,4 @@ export default function reducer(state = {repos: []}, action) {
         default:
             return state;
     }
-}
-
-export function listRepos(user) {
-    return {
-        type: GET_REPOS,
-        payload: {
-            request: {
-                url: `/users/${user}/repos`
-            }
-        }
-    };
 }

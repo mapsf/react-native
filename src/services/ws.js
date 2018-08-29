@@ -23,7 +23,7 @@ export function connect() {
 
     // clearListeners();
 
-    ws = new WebSocket(`${config('websocketServer')}?Authorization=${auth.getToken()}`);
+    ws = new WebSocket(`${config('websocketServer')}?Authorization=${'test'}`);
 
     ws.onopen = () => callListeners({type: 'connected', data: null});
     ws.onmessage = (e) => callListeners(JSON.parse(e.data));

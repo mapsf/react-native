@@ -7,10 +7,6 @@ import NS from './../services/notification'
 type Props = {};
 export default class Login extends Component<Props> {
 
-    static navigationOptions = {
-        header: null
-    };
-
     state = {
         loading: false,
         login: 'alexandr',

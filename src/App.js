@@ -9,28 +9,20 @@ import reducer from "./redux/reducer";
 import axiosMiddleware from 'redux-axios-middleware';
 import http from "./services/http";
 import {Provider} from "react-redux";
-import NS from "./services/notification";
 
 const store = createStore(reducer, applyMiddleware(axiosMiddleware(http)));
 
 const AppWithNavigationState = createStackNavigator({
-    Login: {screen: LoginScreen},
-    Home: {screen: HomeScreen},
-});
-
-on('connected', () => {
-    NS.show('[WS] connected');
-});
-
-on('disconnected', (event) => {
-    NS.show('[WS] disconnected  ' + event.code + ', ' + event.reason);
-});
-
-on('error', (event) => {
-    NS.show('[WS] error' + event.message);
-});
-
-connect();
+        Login: {screen: LoginScreen},
+        Home: {screen: HomeScreen},
+    },
+    {
+        headerMode: 'none',
+        navigationOptions: {
+            headerVisible: false,
+        }
+    }
+);
 
 export default class App extends Component {
     render() {
