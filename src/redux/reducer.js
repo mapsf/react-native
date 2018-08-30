@@ -1,7 +1,10 @@
-import state from './state'
 import {GET_REPOS, GET_REPOS_SUCCESS, GET_REPOS_FAIL} from "./consts";
 
-export default function reducer(state = state, action) {
+const initialState = {
+    repos: [],
+};
+
+export default function reducer(state = initialState, action) {
     switch (action.type) {
         case GET_REPOS:
             return {...state, loading: true};

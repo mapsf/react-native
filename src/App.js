@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {createStackNavigator} from 'react-navigation';
-import {connect, on} from './services/ws'
 
 import LoginScreen from './screens/Login'
 import HomeScreen from './screens/Home'

@@ -6,9 +6,10 @@ function getUrl(config) {
     return config.baseURL ? config.url.replace(config.baseURL, '') : config.url;
 }
 
-const tokenInjector = (config) => {
-    if (auth.getToken()) {
-        config.headers.common['Authorization'] = auth.getToken();
+const tokenInjector = async (config) => {
+    const token = await auth.getToken();
+    if (token) {
+        config.headers.common['Authorization'] = token;
     }
     return config;
 };

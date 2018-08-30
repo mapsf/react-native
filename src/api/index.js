@@ -1,4 +1,4 @@
-import httpClient from './http'
+import httpClient from './../services/http'
 
 export default {
     loginUser: function (login, password) {
@@ -9,5 +9,8 @@ export default {
     },
     getUserInfo: function () {
         return httpClient.get('/me');
+    },
+    validateToken() {
+        return httpClient.post('/validate-token');
     },
 }

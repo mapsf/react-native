@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, TextInput, View, Button, Alert, TouchableOpacity, ActivityIndicator} from 'react-native';
-import api from './../services/api'
+import api from './../api'
 import auth from './../services/auth'
 import NS from './../services/notification'
+import SplashScreen from "react-native-splash-screen";
 
 type Props = {};
 export default class Login extends Component<Props> {
@@ -13,12 +14,20 @@ export default class Login extends Component<Props> {
         password: '1',
     };
 
-    componentDidMount() {
-
-    }
-
-    componentWillUnmount() {
-
+    async componentDidMount() {
+        const {navigate} = this.props.navigation;
+        try {
+            const token = await auth.getToken();
+            if (token) {
+                await api.validateToken();
+                navigate('Home');
+            } else {
+                SplashScreen.hide();
+            }
+        } catch (e) {
+            alert('can not validate token, reason: ' + e.message);
+            SplashScreen.hide();
+        }
     }
 
     render() {
@@ -29,32 +38,30 @@ export default class Login extends Component<Props> {
             this.setState({loading: true});
             api.loginUser(this.state.login, this.state.password)
                 .then(res => auth.storeToken(res.data.token).then(() => navigate('Home')))
-                .catch(err => {
-                    NS.show(err.message);
-                })
+                .catch(err => NS.show(err.message))
                 .finally(() => this.setState({loading: false}))
         };
 
-        return (
-            <View style={styles.container}>
-                {
-                    this.state.loading ?
-                        <ActivityIndicator size="large"/> :
-                        <View>
-                            <Text>PvpMaps</Text>
-                            <TextInput style={styles.input} placeholder="Логин" value={this.state.login}
-                                       onChangeText={(val) => this.setState({login: val})}/>
-                            <TextInput style={styles.input} placeholder="Пароль" value={this.state.password}
-                                       onChangeText={(val) => this.setState({password: val})}/>
-                            <TouchableOpacity onPress={login}>
-                                <View style={styles.button}>
-                                    <Text style={styles.inputText}>Войти</Text>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                }
-            </View>
-        );
+        if (this.state.loading) {
+            return <ActivityIndicator size="large"/>
+        } else {
+            return (
+                <View style={styles.container}>
+                    <View>
+                        <Text>PvpMaps</Text>
+                        <TextInput style={styles.input} placeholder="Логин" value={this.state.login}
+                                   onChangeText={(val) => this.setState({login: val})}/>
+                        <TextInput style={styles.input} placeholder="Пароль" value={this.state.password}
+                                   onChangeText={(val) => this.setState({password: val})}/>
+                        <TouchableOpacity onPress={login}>
+                            <View style={styles.button}>
+                                <Text style={styles.inputText}>Войти</Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
+        }
     }
 }
 
