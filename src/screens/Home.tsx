@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, Alert, TouchableOpacity, Button } from 'react-native';
+import React, {Component} from 'react';
+import {Platform, StyleSheet, Text, View, Alert, TouchableOpacity, Button} from 'react-native';
 import api from './../api'
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 import Mapbox from '@mapbox/react-native-mapbox-gl';
 
-import { listRepos } from './../redux/actions';
+import {listRepos} from './../redux/actions';
 import NS from "../services/notification";
 import SplashScreen from "react-native-splash-screen";
 import auth from "../services/auth";
@@ -59,7 +59,7 @@ class Home extends Component<Props> {
         // this.props.listRepos('relferreira');
         api.getUserInfo()
             .then(res => {
-                this.setState({ user: res.data });
+                this.setState({user: res.data});
             })
             .catch(err => {
                 NS.show(err.message);
@@ -72,7 +72,7 @@ class Home extends Component<Props> {
 
     render() {
 
-        const { navigate } = this.props.navigation;
+        const {navigate} = this.props.navigation;
 
         const logout = () => {
             alert('logout');
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = state => {
-    let repos = state.repos.map(repo => ({ key: repo.id, ...repo }));
+    let repos = state.repos.map(repo => ({key: repo.id, ...repo}));
     return {
         repos,
     };
