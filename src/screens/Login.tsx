@@ -4,6 +4,8 @@ import api from './../api'
 import auth from './../services/auth'
 import NS from './../services/notification'
 import SplashScreen from "react-native-splash-screen";
+import {LoginResponse} from "../api/responces";
+import {AxiosResponse} from "axios";
 
 type Props = {};
 export default class Login extends Component<Props> {
@@ -37,8 +39,11 @@ export default class Login extends Component<Props> {
         const login = () => {
             this.setState({loading: true});
             api.loginUser(this.state.login, this.state.password)
-                .then(res => auth.storeToken(res.data.token).then(() => navigate('Home')))
-                .catch(err => NS.show(err.message))
+                .then((res: AxiosResponse) => {
+                    const data: LoginResponse = res.data;
+                    auth.storeToken(data.token).then(() => navigate('Home'));
+                })
+                .catch((err: any) => NS.show(err.message))
                 .finally(() => this.setState({loading: false}))
         };
 

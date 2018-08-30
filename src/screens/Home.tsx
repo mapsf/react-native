@@ -9,7 +9,11 @@ import NS from "../services/notification";
 import SplashScreen from "react-native-splash-screen";
 import auth from "../services/auth";
 import config from "../services/config";
-import ws from '../services/ws'
+import {getInstance} from '../services/web-socket.service'
+import {UserInfoResponse} from "../api/responces";
+import {AxiosResponse} from "axios";
+import {Message} from "../utils/web-socket-client/types";
+import {Client} from "../utils/web-socket-client";
 
 Mapbox.setAccessToken(config('mapboxAccessToken'));
 
@@ -26,27 +30,29 @@ class Home extends Component<Props> {
         },
     };
 
-    async componentWillMount() {
-
-    }
+    private ws: Client = getInstance();
 
     async componentDidMount() {
 
-        ws.on('connected', () => {
+        this.ws.listen('connected', (message: Message) => {
             NS.show('[WS] connected');
         });
 
-        ws.on('disconnected', (event) => {
-            NS.show('[WS] disconnected  ' + event.code + ', ' + event.reason);
+        this.ws.listen('disconnected', (message: Message) => {
+            NS.show('[WS] disconnected  ' + message.originalEvent.code + ', ' + message.originalEvent.reason);
         });
 
-        ws.on('error', (event) => {
-            NS.show('[WS] error' + event.message);
+        this.ws.listen('error', (message: Message) => {
+            NS.show('[WS] error' + message.originalEvent.message);
         });
 
-        ws.connect();
+        this.ws.listen('ping', (message: Message) => {
+            NS.show(`Вы получили ping сообщение. Содержимое: ${JSON.stringify(message.data)}`);
+        });
 
-        const isGranted = await Mapbox.requestAndroidLocationPermissions();
+        this.ws.connect();
+
+        // const isGranted = await Mapbox.requestAndroidLocationPermissions();
 
         SplashScreen.hide();
 
@@ -58,16 +64,17 @@ class Home extends Component<Props> {
 
         // this.props.listRepos('relferreira');
         api.getUserInfo()
-            .then(res => {
-                this.setState({user: res.data});
+            .then((res: AxiosResponse) => {
+                const user: UserInfoResponse = res.data;
+                this.setState({user: user});
             })
-            .catch(err => {
+            .catch((err: any) => {
                 NS.show(err.message);
             })
     }
 
     findMe() {
-        ws.emit('ping', 'hello!');
+        this.ws.emit('ping', 'hello!');
     }
 
     render() {
