@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, TextInput, View, Button, Alert, TouchableOpacity, ActivityIndicator} from 'react-native';
-import api from './../api'
-import auth from './../services/auth'
-import NS from './../services/notification'
+import api from '../api/index'
+import auth from '../services/auth'
+import NS from '../services/notification'
 import SplashScreen from "react-native-splash-screen";
 import {LoginResponse} from "../api/responces";
 import {AxiosResponse} from "axios";
@@ -39,9 +39,8 @@ export default class Login extends Component<Props> {
         const login = () => {
             this.setState({loading: true});
             api.loginUser(this.state.login, this.state.password)
-                .then((res: AxiosResponse) => {
-                    const data: LoginResponse = res.data;
-                    auth.storeToken(data.token).then(() => navigate('Home'));
+                .then((res) => {
+                    auth.storeToken(res.token).then(() => navigate('Home'));
                 })
                 .catch((err: any) => NS.show(err.message))
                 .finally(() => this.setState({loading: false}))

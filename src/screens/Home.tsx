@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View, Alert, TouchableOpacity, Button} from 'react-native';
-import api from './../api'
+import api from '../api/index'
 import {connect} from 'react-redux';
 import Mapbox from '@mapbox/react-native-mapbox-gl';
 
@@ -8,14 +8,16 @@ import {listRepos} from './../redux/actions';
 import NS from "../services/notification";
 import SplashScreen from "react-native-splash-screen";
 import auth from "../services/auth";
-import config from "../services/config";
+import config from "../utils/config";
 import {getInstance} from '../services/web-socket.service'
 import {UserInfoResponse} from "../api/responces";
 import {AxiosResponse} from "axios";
 import {Message} from "../utils/web-socket-client/types";
 import {Client} from "../utils/web-socket-client";
+import GeoLocationService from './../services/geo-location.service'
+import ImageButton, {ImageType} from './../components/ImageButton'
 
-Mapbox.setAccessToken(config('mapboxAccessToken'));
+Mapbox.setAccessToken(config.mapboxAccessToken);
 
 type Props = {};
 
@@ -25,8 +27,8 @@ class Home extends Component<Props> {
         user: null,
         // текущая позиция пользователя
         position: {
-            lng: 32.1047655,
-            lat: 49.421955999999994,
+            longitude: 0,
+            latitude: 0,
         },
     };
 
@@ -34,47 +36,58 @@ class Home extends Component<Props> {
 
     async componentDidMount() {
 
-        this.ws.listen('connected', (message: Message) => {
-            NS.show('[WS] connected');
+        GeoLocationService.start().catch(err => {
+            alert('error: ' + JSON.stringify(err));
         });
 
-        this.ws.listen('disconnected', (message: Message) => {
-            NS.show('[WS] disconnected  ' + message.originalEvent.code + ', ' + message.originalEvent.reason);
+        GeoLocationService.eventEmitter.addListener('position', (position: Position) => {
+            // alert('received ' + JSON.stringify(position.coords));
+            this.setState({
+                position: {
+                    longitude: position.coords.longitude,
+                    latitude: position.coords.latitude,
+                }
+            });
+            this.ws.emit('position', this.state.position);
         });
 
-        this.ws.listen('error', (message: Message) => {
-            NS.show('[WS] error' + message.originalEvent.message);
-        });
-
-        this.ws.listen('ping', (message: Message) => {
-            NS.show(`Вы получили ping сообщение. Содержимое: ${JSON.stringify(message.data)}`);
-        });
-
-        this.ws.connect();
-
-        // const isGranted = await Mapbox.requestAndroidLocationPermissions();
+        this.initWebSocketEvents();
 
         SplashScreen.hide();
 
-        // navigator.geolocation.getCurrentPosition(
-        //     (position) => alert(JSON.stringify(position)),
-        //     (error) => alert(JSON.stringify(error)),
-        //     {enableHighAccuracy: true, timeout: 20000},
-        // );
-
         // this.props.listRepos('relferreira');
         api.getUserInfo()
-            .then((res: AxiosResponse) => {
-                const user: UserInfoResponse = res.data;
-                this.setState({user: user});
+            .then((res) => {
+                this.setState({user: res});
             })
             .catch((err: any) => {
                 NS.show(err.message);
             })
     }
 
-    findMe() {
+    findMe = () => {
         this.ws.emit('ping', 'hello!');
+    };
+
+    openCharacterWindow = () => {
+        alert(1);
+    };
+
+    private initWebSocketEvents() {
+        this.ws.connect().then(() => {
+            this.ws.listen('connected', (message: Message) => {
+                NS.show('[WS] connected');
+            });
+            this.ws.listen('disconnected', (message: Message) => {
+                NS.show('[WS] disconnected  ' + message.originalEvent.code + ', ' + message.originalEvent.reason);
+            });
+            this.ws.listen('error', (message: Message) => {
+                NS.show('[WS] error' + message.originalEvent.message);
+            });
+            this.ws.listen('ping', (message: Message) => {
+                NS.show(`Вы получили ping сообщение. Содержимое: ${JSON.stringify(message.data)}`);
+            });
+        });
     }
 
     render() {
@@ -90,24 +103,24 @@ class Home extends Component<Props> {
         return (
             <View style={styles.container}>
                 <Mapbox.MapView
-                    styleURL={'mapbox://styles/jilexandr/cjldyt0ip6kt72rp7v9kszc6b'}
+                    styleURL={config.mapStyle}
                     zoomLevel={15}
-                    centerCoordinate={[this.state.position.lng, this.state.position.lat]}
+                    centerCoordinate={[this.state.position.longitude, this.state.position.latitude]}
                     style={styles.map}
                     logoEnabled={false}
                     compassEnabled={false}
                     rotateEnabled={false}
                     pitchEnabled={false}
-                    showUserLocation={true}
+                    showUserLocation={false}
                 >
                 </Mapbox.MapView>
                 <View style={styles.top}>
-                    <Button style={styles.button} title={'test1'} onPress={this.findMe}/>
-                    <Button style={styles.button} title={'test2'} onPress={this.findMe}/>
+                    <ImageButton icon={ImageType.user} clickHandler={() => alert('user')}/>
+                    <ImageButton icon={ImageType.settings} clickHandler={() => alert('settings')}/>
                 </View>
                 <View style={styles.bottom}>
                     <Button style={styles.button} title={'test1'} onPress={this.findMe}/>
-                    <Button style={styles.button} title={'test2'} onPress={this.findMe}/>
+                    <Button style={styles.button} title={'Персонаж'} onPress={this.openCharacterWindow}/>
                 </View>
             </View>
         );

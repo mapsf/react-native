@@ -1,7 +1,7 @@
 import { AppRegistry, StatusBar } from 'react-native';
-import { name as appName } from './app.json';
+import config from './src/utils/config';
 import App from './src/App';
 
 StatusBar.setHidden(true);
 
-AppRegistry.registerComponent(appName, () => App);
+AppRegistry.registerComponent(config.appName, () => App);

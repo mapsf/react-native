@@ -1,36 +1,38 @@
 import axios from 'axios'
-import config from './config'
+import config from '../utils/config'
 import auth from "./auth";
 
-function getUrl(config) {
-    return config.baseURL ? config.url.replace(config.baseURL, '') : config.url;
+// import {Promise} from "es6-promise";
+
+function getUrl(c: any) {
+    return c.baseURL ? c.url.replace(c.baseURL, '') : c.url;
 }
 
-const tokenInjector = async (config) => {
+const tokenInjector = async (c) => {
     const token = await auth.getToken();
     if (token) {
-        config.headers.common['Authorization'] = token;
+        c.headers.common['Authorization'] = token;
     }
-    return config;
+    return c;
 };
 
-const requestLogger = (config) => {
-    console.log(`[REQUEST STARTED] ${config.method.toUpperCase()} - ${getUrl(config)} -> ${JSON.stringify(config.data)}, ${JSON.stringify(config.headers.common)}`);
-    return config
+const requestLogger = (c: any) => {
+    console.log(`[REQUEST STARTED] ${c.method.toUpperCase()} - ${getUrl(c)} -> ${JSON.stringify(c.data)}, ${JSON.stringify(c.headers.common)}`);
+    return c
 };
 
-const responseLogger = (res) => {
+const responseLogger = (res: any) => {
     console.log(`[REQUEST FINISHED] ${res.status} - ${getUrl(res.config)} -> ${JSON.stringify(res.data)}`);
     return res;
 };
 
-const responseErrorLogger = (err) => {
+const responseErrorLogger = (err: any) => {
     console.log(`[REQUEST FINISHED WITH ERROR] ${err.response.status} - ${getUrl(err.response.config)} -> ${JSON.stringify(err.response.data)}`);
     return Promise.reject(err);
 };
 
 const httpClient = axios.create({
-    baseURL: config('apiServer'),
+    baseURL: config.apiServer,
     timeout: 1000,
 });
 

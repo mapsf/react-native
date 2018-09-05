@@ -4,9 +4,10 @@ export class Client implements WebSocketClient {
 
     private _eventListenersMap: { [key: string]: EventListener[]; } = {};
     private _serverUrlProvider: Function;
-    private instance: WebSocket | undefined;
+    public instance: WebSocket;
     private readonly logger: Console;
     private readonly reconnectingTimeout = 2000;
+    private messagesQueue: string[] = [];
 
     private state: State = State.NOT_INITIALIZED;
 
@@ -16,7 +17,7 @@ export class Client implements WebSocketClient {
     }
 
     // connect to the server
-    public async connect(): void {
+    public async connect() {
 
         this.state = State.INITIALIZED;
 
@@ -29,6 +30,7 @@ export class Client implements WebSocketClient {
         this.instance.onopen = () => {
             this.state = State.CONNECTED;
             this._callListeners({type: 'connected'});
+            this.checkQueue();
         };
         this.instance.onmessage = (event: MessageEvent) => {
             try {
@@ -58,6 +60,7 @@ export class Client implements WebSocketClient {
         this.instanceCreated(() => {
             if (this.instance.readyState !== 1) {
                 this.log('Connection is not opened, message can not be sent');
+                this.messagesQueue.push(JSON.stringify({type: eventType, data: data}));
                 return;
             }
             this.instance.send(JSON.stringify({type: eventType, data: data}));
@@ -112,7 +115,10 @@ export class Client implements WebSocketClient {
         this.logger.log.apply(this.logger, args);
     }
 
-    // _clearListeners() {
-    //     this._eventListenersMap = {};
-    // }
+    private checkQueue(): void {
+        for (let i = 0; i < this.messagesQueue.length; i++) {
+            let message = this.messagesQueue.shift();
+            this.instance.send(message);
+        }
+    }
 }
